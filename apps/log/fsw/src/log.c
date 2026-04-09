@@ -174,6 +174,19 @@ CFE_Status_t LOG_Init(void)
     if (status == CFE_SUCCESS)
     {
         /*
+        ** Subscribe to EVS Event message
+        */
+        status = CFE_SB_Subscribe(CFE_SB_ValueToMsgId(CFE_EVS_LONG_EVENT_MSG_MID), LOG_Data.CommandPipe);
+        if (status != CFE_SUCCESS)
+        {
+            CFE_EVS_SendEvent(LOG_SUB_EVS_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "Log: Error Subscribing to EVS events, RC = 0x%08lX", (unsigned long)status);
+        }
+    }
+
+    if (status == CFE_SUCCESS)
+    {
+        /*
         ** Register Example Table(s)
         */
         status = CFE_TBL_Register(&LOG_Data.TblHandles[0], "ExampleTable", sizeof(LOG_ExampleTable_t),

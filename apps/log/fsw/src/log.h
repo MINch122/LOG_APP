@@ -38,9 +38,35 @@
 #include "log_msgids.h"
 #include "log_msg.h"
 
+#include "cfe_evs_msgids.h"
+#include "cfe_evs_msgdefs.h"
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+
+#define LOG_MAX_ENTRIES_PER_FILE 1000    // 파일 하나 당 저장 로그 수
+#define LOG_SYNC_INTERVAL          50    // 로그 몇 개마다 sync를 쓸지
+
+
 /************************************************************************
 ** Type Definitions
 *************************************************************************/
+
+/*
+** 저장되는 로그 파일 헤더
+*/
+typedef struct
+{
+    uint32                      CreateTime;   // 파일 생성 시각
+    uint32                       CloseTime;   // 파일 꽉 찬 시각
+    uint32                       FileIndex;   // 파일 인덱스 (0, 1, 2, ...)
+    uint16                       InfoCount;   // Info log 개수
+    uint16                        ErrCount;   // Err log 개수
+    uint16                       CritCount;   // Critical log 개수
+    uint32                        FileSize;   // 파일 총 사이즈 (byte)
+} LOG_FileHeader_t;
+
 
 /*
 ** Global Data
@@ -68,6 +94,17 @@ typedef struct
     */
     CFE_SB_PipeId_t CommandPipe;
 
+
+    /*
+    ** 현재 파일 관련 정보
+    */
+    uint32                    CurrentIndex;   // 현재 파일 번호 log000, log001 ...
+    uint32                      EntryCount;   // 현재 파일에 들어간 로그 개수
+    LOG_FileHeader_t         CurrentHeader;   // 현재 파일의 헤더 정보
+
+    int                                 Fd;   // POSIX file descriptor
+    uint8                          *MapPtr;   // 매핑된 메모리 pointer
+
     CFE_TBL_Handle_t TblHandles[LOG_PLATFORM_NUMBER_OF_TABLES];
 } LOG_Data_t;
 
@@ -75,6 +112,7 @@ typedef struct
 ** Global data structure
 */
 extern LOG_Data_t LOG_Data;
+
 
 /****************************************************************************/
 /*

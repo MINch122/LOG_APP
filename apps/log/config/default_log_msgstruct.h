@@ -83,3 +83,4 @@ typedef struct
 } LOG_HkTlm_t;
 
 #endif /* LOG_MSGSTRUCT_H */
+

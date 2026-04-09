@@ -129,6 +129,7 @@ void LOG_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr)
 {
     static CFE_SB_MsgId_t CMD_MID     = CFE_SB_MSGID_RESERVED;
     static CFE_SB_MsgId_t SEND_HK_MID = CFE_SB_MSGID_RESERVED;
+    static CFE_SB_MsgId_t EVS_MID     = CFE_SB_MSGID_RESERVED;
 
     CFE_SB_MsgId_t MsgId = CFE_SB_INVALID_MSG_ID;
 
@@ -137,6 +138,7 @@ void LOG_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr)
     {
         CMD_MID     = CFE_SB_ValueToMsgId(LOG_CMD_MID);
         SEND_HK_MID = CFE_SB_ValueToMsgId(LOG_SEND_HK_MID);
+        EVS_MID     = CFE_SB_ValueToMsgId(CFE_EVS_LONG_EVENT_MSG_MID);
     }
 
     CFE_MSG_GetMsgId(&SBBufPtr->Msg, &MsgId);
@@ -151,6 +153,11 @@ void LOG_TaskPipe(const CFE_SB_Buffer_t *SBBufPtr)
     {
         /* Ground command */
         LOG_ProcessGroundCommand(SBBufPtr);
+    }
+    else if (CFE_SB_MsgId_Equal(MsgId, EVS_MID))
+    {
+        /* EVS event message receive */
+        LOG_ProcessEventMsg((const CFE_EVS_LongEventTlm_t *)SBBufPtr);
     }
     else
     {
