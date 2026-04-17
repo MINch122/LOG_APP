@@ -72,6 +72,7 @@ CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg)
 /*                                                                            */
 /*  Purpose:                                                                  */
 /*         SB에서부터 오는 event message를 저장하기 위한 함수                      */
+/*         LINUX system call (POSIX) used: open, close, mmap                  */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
 
@@ -136,7 +137,7 @@ CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg)
 
     memcpy(LOG_Data.MapPtr + WriteOffset, Msg, sizeof(CFE_EVS_LongEventTlm_t));
 
-    // 상태 업데이트
+    // 헤더 상태 업데이트
     LOG_Data.EntryCount++;
     LOG_Data.CurrentHeader.FileSize += sizeof(CFE_EVS_LongEventTlm_t);
 
@@ -152,6 +153,7 @@ CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg)
     {
         LOG_Data.CurrentHeader.InfoCount++;
     }
+    memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
 
     // 다 채웠을 때 - 파일 닫기, 초기화
     if (LOG_Data.EntryCount >= LOG_MAX_ENTRIES_PER_FILE)
@@ -254,6 +256,131 @@ CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg)
     CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION,
                       "LOG: ValU32=%lu, ValI16=%d, ValStr=%s", (unsigned long)Msg->Payload.ValU32,
                       (int)Msg->Payload.ValI16, Msg->Payload.ValStr);
+
+    return CFE_SUCCESS;
+}
+
+
+/* 민창희가 만들었어요(with AI) */
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* GET_CURRENT_HEADER:                                                        */
+/*     Gets the header of current log file                                    */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
+{
+    // 열려 있는 파일 있는지 확인
+    if (LOG_Data.MapPtr == NULL)
+    {
+        OS_printf("[LOG APP] There is No opened file.\n");
+        LOG_Data.ErrCounter++;
+        
+        CFE_EVS_SendEvent(LOG_CMD_ERR_EID, CFE_EVS_EventType_ERROR, "LOG: GET_CURRENT_HEADER failed. no opened file.");
+
+        return CFE_SUCCESS;
+    }
+
+    LOG_Data.HdrTlm.HeaderData = LOG_Data.CurrentHeader;
+
+    CFE_SB_TimeStampMsg(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader));
+    CFE_SB_TransmitMsg(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader), true);
+
+    LOG_Data.CmdCounter++;
+
+    // debug print
+    OS_printf("[LOG APP] GET_CURRENT_HEADER Success.\n");
+    OS_printf("[LOG APP] --- Current File Header Status ---\n");
+    OS_printf("CreateTime: %u, CloseTime: %u, FileIndex: %u\n",
+              (unsigned int)LOG_Data.CurrentHeader.CreateTime,
+              (unsigned int)LOG_Data.CurrentHeader.CloseTime,
+              (unsigned int)LOG_Data.CurrentHeader.FileIndex);
+    OS_printf("InfoCnt: %u, ErrCnt: %u, CritCnt: %u, FileSize: %u bytes\n",
+              (unsigned int)LOG_Data.CurrentHeader.InfoCount,
+              (unsigned int)LOG_Data.CurrentHeader.ErrCount,
+              (unsigned int)LOG_Data.CurrentHeader.CritCount,
+              (unsigned int)LOG_Data.CurrentHeader.FileSize);
+
+    return CFE_SUCCESS;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* GET_LOG_COUNT:                                                             */
+/*     Gets the LOG stats: total, info, err, crit count                       */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg)
+{
+    int fd;
+    char Filename[64];
+    LOG_FileHeader_t TempHeader;
+    ssize_t bytesRead;
+
+    // 누적 시작
+    uint32 TotalEntries = 0;
+    uint32 TotalInfo = 0;
+    uint32 TotalErr = 0;
+    uint32 TotalCrit = 0;
+    uint32 ScannedFiles = 0;
+    
+    OS_printf("[LOG APP] Log Counting Start...\n");
+
+    // 0번 파일부터 순회
+    for (uint32 i = 0; i <= LOG_Data.CurrentIndex; i++)
+    {
+        snprintf(Filename, sizeof(Filename), "./cf/log%03d.bin", (int)i);
+
+        // 파일 열기
+        fd = open(Filename, O_RDONLY);
+        if (fd < 0)
+        {
+            // 파일이 없으면 무시하고 다음으로
+            continue;
+        }
+
+        // 헤더 읽기 - 헤더만 읽으면 count할 수 있음
+        bytesRead = read(fd, &TempHeader, sizeof(LOG_FileHeader_t));
+        close(fd);
+
+        // 누적 계산
+        if (bytesRead == sizeof(LOG_FileHeader_t))
+        {
+            if (i < LOG_Data.CurrentIndex)
+            {
+                TotalEntries += LOG_MAX_ENTRIES_PER_FILE; // 이미 닫힌 파일은 최대 개수
+            }
+            else
+            {
+                TotalEntries += LOG_Data.EntryCount; // 닫히지 않은 파일(=현재 파일)은 현재 엔트리 카운트
+            }
+
+            TotalInfo    += TempHeader.InfoCount;
+            TotalErr     += TempHeader.ErrCount;
+            TotalCrit    += TempHeader.CritCount;
+            ScannedFiles ++;
+        }
+    }
+
+    // Tlm 패킷 작성
+    LOG_Data.CntTlm.ScannedFiles = ScannedFiles;
+    LOG_Data.CntTlm.TotalEntries = TotalEntries;
+    LOG_Data.CntTlm.TotalInfo    = TotalInfo;
+    LOG_Data.CntTlm.TotalErr     = TotalErr;
+    LOG_Data.CntTlm.TotalCrit    = TotalCrit;
+
+    // 패킷 전송
+    CFE_SB_TimeStampMsg(CFE_MSG_PTR(LOG_Data.CntTlm.TelemetryHeader));
+    CFE_SB_TransmitMsg(CFE_MSG_PTR(LOG_Data.CntTlm.TelemetryHeader), true);
+
+    LOG_Data.CmdCounter++;
+
+    // debug print
+    OS_printf("[LOG APP] --- Disk Log Statistics ---\n");
+    OS_printf("Files Scanned: %u\n", (unsigned int)ScannedFiles);
+    OS_printf("Total Logs   : %u\n", (unsigned int)TotalEntries);
+    OS_printf("Info: %u, Err: %u, Crit: %u\n", (unsigned int)TotalInfo, (unsigned int)TotalErr, (unsigned int)TotalCrit);
 
     return CFE_SUCCESS;
 }

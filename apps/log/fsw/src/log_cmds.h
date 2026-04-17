@@ -37,5 +37,7 @@ CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg);
 CFE_Status_t LOG_NoopCmd(const LOG_NoopCmd_t *Msg);
 CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg);
 CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg);
+CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg);
+CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg);
 
 #endif /* LOG_CMDS_H */

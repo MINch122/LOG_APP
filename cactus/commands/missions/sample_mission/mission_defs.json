@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Mission-level compile-time constants for command parameter sizing.",
+    "Edit values here to match your target's CMake / header configuration.",
+    "These are referenced by 'length' and 'count' fields in command JSON files.",
+    "Simple arithmetic is supported, e.g. \"length\": \"OS_MAX_API_NAME + 2\"",
+    "Keys beginning with '_' are ignored."
+  ],
+
+  "OS_MAX_API_NAME":                    20,
+  "OS_MAX_PATH_LEN":                    64,
+  "OS_MAX_SYM_LEN":                     64,
+
+  "CFE_MISSION_MAX_API_LEN":            20,
+  "CFE_MISSION_MAX_PATH_LEN":           64,
+
+  "CFE_MISSION_TBL_MAX_FULL_NAME_LEN":  40,
+  "CFE_MISSION_ES_CDS_MAX_FULL_NAME_LEN": 40,
+
+  "CFE_MISSION_EVS_MAX_MESSAGE_LENGTH": 122
+}

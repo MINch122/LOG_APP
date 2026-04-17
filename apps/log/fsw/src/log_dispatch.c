@@ -110,6 +110,21 @@ void LOG_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             }
             break;
 
+        case LOG_GET_CURRENT_HEADER_CC:
+            if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_GetCurrentHeaderCmd_t)))
+            {
+                LOG_GetCurrentHeaderCmd((const LOG_GetCurrentHeaderCmd_t *)SBBufPtr);
+            }
+            break;
+
+        case LOG_GET_LOG_COUNT_CC:
+            if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_GetLogCountCmd_t)))
+            {
+                LOG_GetLogCountCmd((const LOG_GetLogCountCmd_t *)SBBufPtr);
+            }
+            break;
+
+
         /* default case already found during FC vs length test */
         default:
             CFE_EVS_SendEvent(LOG_CC_ERR_EID, CFE_EVS_EventType_ERROR, "Invalid ground command code: CC = %d",

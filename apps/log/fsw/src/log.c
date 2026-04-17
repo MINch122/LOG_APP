@@ -134,6 +134,13 @@ CFE_Status_t LOG_Init(void)
                      sizeof(LOG_Data.HkTlm));
 
         /*
+         ** Initialize HeaderTlm packet
+         */
+        CFE_MSG_Init(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader), CFE_SB_ValueToMsgId(LOG_HDR_TLM_MID),
+                     sizeof(LOG_HeaderTlm_t));
+
+
+        /*
          ** Create Software Bus message pipe.
          */
         status = CFE_SB_CreatePipe(&LOG_Data.CommandPipe, LOG_PLATFORM_PIPE_DEPTH,
@@ -210,3 +217,4 @@ CFE_Status_t LOG_Init(void)
 
     return status;
 }
+

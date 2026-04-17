@@ -82,5 +82,110 @@ typedef struct
     LOG_HkTlm_Payload_t Payload;         /**< \brief Telemetry payload */
 } LOG_HkTlm_t;
 
-#endif /* LOG_MSGSTRUCT_H */
 
+
+/* * * * * * * * * * * * * * * * * */
+/* 민창희가 만들었어요                */
+/* * * * * * * * * * * * * * * * * */
+
+/*
+** 저장되는 로그 파일 헤더
+*/
+typedef struct
+{
+    uint32                      CreateTime;   // 파일 생성 시각
+    uint32                       CloseTime;   // 파일 꽉 찬 시각
+    uint32                       FileIndex;   // 파일 인덱스 (0, 1, 2, ...)
+    uint16                       InfoCount;   // Info log 개수
+    uint16                        ErrCount;   // Err log 개수
+    uint16                       CritCount;   // Critical log 개수
+    uint32                        FileSize;   // 파일 총 사이즈 (byte)
+} LOG_FileHeader_t;
+
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader;
+} LOG_GetCurrentHeaderCmd_t;
+
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader;
+} LOG_GetLogCountCmd_t;
+
+
+/* Telemetry struct */
+typedef struct
+{
+    CFE_MSG_TelemetryHeader_t TelemetryHeader;
+    LOG_FileHeader_t HeaderData;
+} LOG_HeaderTlm_t;
+
+typedef struct
+{
+    CFE_MSG_TelemetryHeader_t TelemetryHeader;
+    uint32 ScannedFiles;
+    uint32 TotalEntries;
+    uint32 TotalInfo;
+    uint32 TotalErr;
+    uint32 TotalCrit;
+} LOG_CountTlm_t;
+
+
+/************************************************************************
+** Type Definitions
+*************************************************************************/
+
+/*
+** Global Data
+*/
+typedef struct
+{
+    /*
+    ** Command interface counters...
+    */
+    uint8 CmdCounter;
+    uint8 ErrCounter;
+
+
+    /* TELEMETRY PARCKET*/
+    
+    // Housekeeping telemetry packet...
+    LOG_HkTlm_t HkTlm;
+
+    // Header telemetry packet...
+    LOG_HeaderTlm_t HdrTlm;
+
+    // Log Count Telemetry packet
+    LOG_CountTlm_t CntTlm;
+
+    /*
+    ** Run Status variable used in the main processing loop
+    */
+    uint32 RunStatus;
+
+    /*
+    ** Operational data (not reported in housekeeping)...
+    */
+    CFE_SB_PipeId_t CommandPipe;
+
+
+    /*
+    ** 현재 파일 관련 정보
+    */
+    uint32                    CurrentIndex;   // 현재 파일 번호 log000, log001 ...
+    uint32                      EntryCount;   // 현재 파일에 들어간 로그 개수
+    LOG_FileHeader_t         CurrentHeader;   // 현재 파일의 헤더 정보
+
+    int                                 Fd;   // POSIX file descriptor
+    uint8                          *MapPtr;   // 매핑된 메모리 pointer
+
+    CFE_TBL_Handle_t TblHandles[LOG_PLATFORM_NUMBER_OF_TABLES];
+} LOG_Data_t;
+
+/*
+** Global data structure
+*/
+extern LOG_Data_t LOG_Data;
+
+
+#endif /* LOG_MSGSTRUCT_H */

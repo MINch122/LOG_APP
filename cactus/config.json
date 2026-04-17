@@ -1,0 +1,7 @@
+{
+  "target_ip": "127.0.0.1",
+  "cmd_port": 1234,
+  "tlm_port": 2234,
+  "endian": "little",
+  "commands_dir": "commands/missions/sample_mission"
+}

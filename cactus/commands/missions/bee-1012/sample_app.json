@@ -1,0 +1,54 @@
+{
+  "app": "SAMPLE_APP",
+  "description": "cFS Sample Application — reference app shipped with cFS",
+  "commands": [
+    {
+      "name": "Noop",
+      "mid": "0x1882",
+      "fc": 0,
+      "description": "No-op command. Increments command counter.",
+      "params": []
+    },
+    {
+      "name": "Reset Counters",
+      "mid": "0x1882",
+      "fc": 1,
+      "description": "Reset housekeeping counters.",
+      "params": []
+    },
+    {
+      "name": "Process",
+      "mid": "0x1882",
+      "fc": 2,
+      "description": "Trigger the sample app's main processing action.",
+      "params": []
+    },
+    {
+      "name": "Display Param",
+      "mid": "0x1882",
+      "fc": 3,
+      "description": "Display parameter values via event message.",
+      "params": [
+        {
+          "name": "ValU32",
+          "type": "uint32",
+          "default": "0",
+          "description": "Unsigned 32-bit demo value"
+        },
+        {
+          "name": "ValI16",
+          "type": "int16",
+          "default": "0",
+          "description": "Signed 16-bit demo value"
+        },
+        {
+          "name": "ValStr",
+          "type": "string",
+          "length": 10,
+          "default": "Hello",
+          "description": "String demo value (max 10 bytes, null-terminated)"
+        }
+      ]
+    }
+  ]
+}

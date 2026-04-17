@@ -1,0 +1,48 @@
+{
+  "app": "LOG",
+  "description": "LOG APP command set for CACTUS.",
+  "commands": [
+    {
+      "name": "NOOP",
+      "mid": "0x1882",
+      "fc": 0,
+      "description": "Verify the command interface is alive and increment the command counter.",
+      "params": []
+    },
+    {
+      "name": "RESET_COUNTERS",
+      "mid": "0x1882",
+      "fc": 1,
+      "description": "Reset the application's housekeeping counters.",
+      "params": []
+    },
+    {
+      "name": "Process",
+      "mid": "0x1882",
+      "fc": 2,
+      "description": "Process Ground Station Command: Table adress & Table value",
+      "params": []
+    },
+    {
+      "name": "DIDSPLAY_PARAM",
+      "mid": "0x1882",
+      "fc": 3,
+      "description": "A simple example command that displays a passed-in value.",
+      "params": []
+    },
+    {
+      "name": "GET_CURRENT_HEADER",
+      "mid": "0x1882",
+      "fc": 4,
+      "description": "Gets the header of current log file.",
+      "params": []
+    },
+    {
+      "name": "GET_LOG_COUNT",
+      "mid": "0x1882",
+      "fc": 5,
+      "description": "Gets the LOG stats: total, info, err, crit count",
+      "params": []
+    }
+  ]
+}

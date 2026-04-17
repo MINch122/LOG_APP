@@ -39,5 +39,6 @@
 #define LOG_SUB_CMD_ERR_EID   11
 #define LOG_TABLE_REG_ERR_EID 12
 #define LOG_SUB_EVS_ERR_EID   13
+#define LOG_CMD_ERR_EID       14
 
 #endif /* LOG_EVENTS_H */
