@@ -68,110 +68,6 @@ CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg)
     return CFE_SUCCESS;
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-/*                                                                            */
-/*  Purpose:                                                                  */
-/*         SB에서부터 오는 event message를 저장하기 위한 함수                      */
-/*         LINUX system call (POSIX) used: open, close, mmap                  */
-/*                                                                            */
-/* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
-
-CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg)
-{
-    char Filename[64];
-    uint32 TotalFileSize;
-    uint32 WriteOffset;
-
-    OS_printf("[LOG APP] I receive an Event Mesagge. OK!\n");
-
-    // Debug 메시지 무시
-    if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_DEBUG)
-    {
-        return CFE_SUCCESS;
-    }
-
-    // 전체 파일 크기 = 헤더 + (최대 허용 메시지 개수 * 메시지 하나의 구조체 크기)
-    TotalFileSize = sizeof(LOG_FileHeader_t) + (LOG_MAX_ENTRIES_PER_FILE * sizeof(CFE_EVS_LongEventTlm_t));
-
-    // 파일 생성, mmap 초기화
-    if (LOG_Data.MapPtr == NULL)
-    {
-        snprintf(Filename, sizeof(Filename), "./cf/log%03d.bin", (int)LOG_Data.CurrentIndex);
-
-        // 표준 POSIX 사용 (mmap과 연동)
-        LOG_Data.Fd = open(Filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
-        if (LOG_Data.Fd < 0)
-        {
-            OS_printf("[LOG APP] ERROR: Failed to open %s\n", Filename);
-            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
-        }
-
-        // ftruncate
-        if (ftruncate(LOG_Data.Fd, TotalFileSize) == -1)
-        {
-            close(LOG_Data.Fd);
-            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
-        }
-
-        // memory mapping
-        LOG_Data.MapPtr = (uint8 *)mmap(NULL, TotalFileSize, PROT_READ | PROT_WRITE, MAP_SHARED, LOG_Data.Fd, 0);
-        if (LOG_Data.MapPtr == MAP_FAILED)
-        {
-            LOG_Data.MapPtr = NULL;
-            close(LOG_Data.Fd);
-            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
-        }
-
-        // 헤더 구조체를 메모리 맨 앞에 복사
-        memset(&LOG_Data.CurrentHeader, 0, sizeof(LOG_FileHeader_t));
-        LOG_Data.CurrentHeader.CreateTime = CFE_TIME_GetTime().Seconds;
-        LOG_Data.CurrentHeader.FileIndex = LOG_Data.CurrentIndex;
-        LOG_Data.CurrentHeader.FileSize = sizeof(LOG_FileHeader_t);
-        LOG_Data.EntryCount = 0;
-
-        memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
-    }
-
-    // 메모리에 데이터 복사
-    WriteOffset = sizeof(LOG_FileHeader_t) + (LOG_Data.EntryCount * sizeof(CFE_EVS_LongEventTlm_t));
-
-    memcpy(LOG_Data.MapPtr + WriteOffset, Msg, sizeof(CFE_EVS_LongEventTlm_t));
-
-    // 헤더 상태 업데이트
-    LOG_Data.EntryCount++;
-    LOG_Data.CurrentHeader.FileSize += sizeof(CFE_EVS_LongEventTlm_t);
-
-    if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_CRITICAL)
-    {
-        LOG_Data.CurrentHeader.CritCount++;
-    }
-    else if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_ERROR)
-    {
-        LOG_Data.CurrentHeader.ErrCount++;
-    }
-    else
-    {
-        LOG_Data.CurrentHeader.InfoCount++;
-    }
-    memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
-
-    // 다 채웠을 때 - 파일 닫기, 초기화
-    if (LOG_Data.EntryCount >= LOG_MAX_ENTRIES_PER_FILE)
-    {
-        LOG_Data.CurrentHeader.CloseTime = CFE_TIME_GetTime().Seconds;
-        memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
-
-        msync(LOG_Data.MapPtr, TotalFileSize, MS_SYNC);
-
-        munmap(LOG_Data.MapPtr, TotalFileSize);
-        close(LOG_Data.Fd);
-
-        LOG_Data.MapPtr = NULL;
-        LOG_Data.CurrentIndex++;
-    }
-
-    return CFE_SUCCESS;
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
 /*                                                                            */
@@ -220,6 +116,7 @@ CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg)
 
     /* Log Use of Example Table */
     LOG_Data.CmdCounter++;
+    
     Status = CFE_TBL_GetAddress(&TblAddr, LOG_Data.TblHandles[0]);
     if (Status < CFE_SUCCESS)
     {
@@ -253,6 +150,7 @@ CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg)
 CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg)
 {
     LOG_Data.CmdCounter++;
+
     CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION,
                       "LOG: ValU32=%lu, ValI16=%d, ValStr=%s", (unsigned long)Msg->Payload.ValU32,
                       (int)Msg->Payload.ValI16, Msg->Payload.ValStr);
@@ -265,12 +163,46 @@ CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
 /*                                                                            */
+/* LOG_ENABLE:                                                                */
+/*     Logging enable command                                                 */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_EnabledCmd(const LOG_EnableCmd_t *Msg)
+{
+    LOG_Data.CmdCounter++;
+    LOG_Data.LogEnabled = 1;
+
+    CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION, "Logging Enabled");
+
+    return CFE_SUCCESS;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* LOG_DISABLE:                                                                */
+/*     Logging disable command                                                 */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_DisabledCmd(const LOG_DisableCmd_t *Msg)
+{
+    LOG_Data.CmdCounter++;
+    LOG_Data.LogEnabled = 0;
+
+    CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION, "Logging Disabled");
+
+    return CFE_SUCCESS;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
 /* GET_CURRENT_HEADER:                                                        */
 /*     Gets the header of current log file                                    */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
 CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
 {
+    LOG_Data.CmdCounter++;
+
     // 열려 있는 파일 있는지 확인
     if (LOG_Data.MapPtr == NULL)
     {
@@ -286,8 +218,6 @@ CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
 
     CFE_SB_TimeStampMsg(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader));
     CFE_SB_TransmitMsg(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader), true);
-
-    LOG_Data.CmdCounter++;
 
     // debug print
     OS_printf("[LOG APP] GET_CURRENT_HEADER Success.\n");
@@ -313,6 +243,8 @@ CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
 CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg)
 {
+    LOG_Data.CmdCounter++;
+
     int fd;
     char Filename[64];
     LOG_FileHeader_t TempHeader;
@@ -374,13 +306,12 @@ CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg)
     CFE_SB_TimeStampMsg(CFE_MSG_PTR(LOG_Data.CntTlm.TelemetryHeader));
     CFE_SB_TransmitMsg(CFE_MSG_PTR(LOG_Data.CntTlm.TelemetryHeader), true);
 
-    LOG_Data.CmdCounter++;
-
     // debug print
     OS_printf("[LOG APP] --- Disk Log Statistics ---\n");
     OS_printf("Files Scanned: %u\n", (unsigned int)ScannedFiles);
     OS_printf("Total Logs   : %u\n", (unsigned int)TotalEntries);
-    OS_printf("Info: %u, Err: %u, Crit: %u\n", (unsigned int)TotalInfo, (unsigned int)TotalErr, (unsigned int)TotalCrit);
+    OS_printf("Info: %u, Err: %u, Crit: %u\n", (unsigned int)TotalInfo,
+                (unsigned int)TotalErr, (unsigned int)TotalCrit);
 
     return CFE_SUCCESS;
 }

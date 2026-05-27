@@ -45,7 +45,11 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#define LOG_MAX_ENTRIES_PER_FILE 1000    // 파일 하나 당 저장 로그 수
+#define LOG_MAX_ENTRIES_PER_FILE 150    // 파일 하나 당 저장 로그 수
+
+#define LOG_MASK_INFO (1 << 0)   // 001
+#define LOG_MASK_ERR  (1 << 1)   // 010
+#define LOG_MASK_CRIT (1 << 2)   // 100
 
 
 /****************************************************************************/

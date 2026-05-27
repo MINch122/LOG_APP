@@ -17,30 +17,44 @@
       "params": []
     },
     {
-      "name": "Process",
+      "name": "PROCESS",
       "mid": "0x1882",
       "fc": 2,
       "description": "Process Ground Station Command: Table adress & Table value",
       "params": []
     },
     {
-      "name": "DIDSPLAY_PARAM",
+      "name": "DISPLAY_PARAM",
       "mid": "0x1882",
       "fc": 3,
       "description": "A simple example command that displays a passed-in value.",
       "params": []
     },
     {
-      "name": "GET_CURRENT_HEADER",
+      "name": "ENABLED",
       "mid": "0x1882",
       "fc": 4,
+      "description": "Enable Logging",
+      "params": []
+    },
+    {
+      "name": "DISABLED",
+      "mid": "0x1882",
+      "fc": 5,
+      "description": "Disable Logging",
+      "params": []
+    },
+    {
+      "name": "GET_CURRENT_HEADER",
+      "mid": "0x1882",
+      "fc": 6,
       "description": "Gets the header of current log file.",
       "params": []
     },
     {
       "name": "GET_LOG_COUNT",
       "mid": "0x1882",
-      "fc": 5,
+      "fc": 7,
       "description": "Gets the LOG stats: total, info, err, crit count",
       "params": []
     }

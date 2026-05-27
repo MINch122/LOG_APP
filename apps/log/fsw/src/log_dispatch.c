@@ -110,6 +110,20 @@ void LOG_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             }
             break;
 
+        case LOG_ENABLED_CC:
+            if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_EnableCmd_t)))
+            {
+                LOG_EnabledCmd((const LOG_EnableCmd_t *)SBBufPtr);
+            }
+            break;
+
+        case LOG_DISABLED_CC:
+            if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_DisableCmd_t)))
+            {
+                LOG_DisabledCmd((const LOG_DisableCmd_t *)SBBufPtr);
+            }
+            break;
+
         case LOG_GET_CURRENT_HEADER_CC:
             if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_GetCurrentHeaderCmd_t)))
             {

@@ -105,6 +105,17 @@ typedef struct
 typedef struct
 {
     CFE_MSG_CommandHeader_t CommandHeader;
+} LOG_EnableCmd_t;
+
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader;
+} LOG_DisableCmd_t;
+
+
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader;
 } LOG_GetCurrentHeaderCmd_t;
 
 typedef struct
@@ -146,6 +157,8 @@ typedef struct
     uint8 CmdCounter;
     uint8 ErrCounter;
 
+    // LOGGING ON / OFF
+    uint8 LogEnabled;
 
     /* TELEMETRY PARCKET*/
     
@@ -167,6 +180,7 @@ typedef struct
     ** Operational data (not reported in housekeeping)...
     */
     CFE_SB_PipeId_t CommandPipe;
+    CFE_SB_PipeId_t EventPipe;
 
 
     /*

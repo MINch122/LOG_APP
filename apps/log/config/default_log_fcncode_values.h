@@ -40,8 +40,10 @@ enum LOG_FunctionCode_
     LOG_FunctionCode_RESET_COUNTERS       = 1,
     LOG_FunctionCode_PROCESS              = 2,
     LOG_FunctionCode_DISPLAY_PARAM        = 3,
-    LOG_FunctionCode_GET_CURRENT_HEADER   = 4,
-    LOG_FunctionCode_GET_LOG_COUNT        = 5,
+    LOG_FunctionCode_ENABLED              = 4,
+    LOG_FunctionCode_DISABLED             = 5,
+    LOG_FunctionCode_GET_CURRENT_HEADER   = 6,
+    LOG_FunctionCode_GET_LOG_COUNT        = 7,
 };
 
 #endif

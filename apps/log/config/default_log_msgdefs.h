@@ -27,12 +27,31 @@
 #include "common_types.h"
 #include "log_fcncodes.h"
 
+#pragma pack(push,1)
+
 typedef struct LOG_DisplayParam_Payload
 {
     uint32 ValU32;                                    /**< 32 bit unsigned integer value */
     int16  ValI16;                                    /**< 16 bit signed integer value */
     char   ValStr[LOG_MISSION_STRING_VAL_LEN]; /**< An example string */
 } LOG_DisplayParam_Payload_t;
+
+typedef struct 
+{
+    uint32 start_time;
+    uint32 end_time;
+
+    uint8 query_level;    // bit mask: LOG_MASK_xxx 참고
+} LOG_QueryTime_Payload_t;
+
+typedef struct
+{
+    uint16 start_idx;
+    uint16 log_number;  // start_idx부터 로그 몇 개를 가져올 건지
+
+    uint8 query_level;
+} LOG_QueryNumber_Payload_t;
+
 
 /*************************************************************************/
 /*
@@ -45,5 +64,7 @@ typedef struct LOG_HkTlm_Payload
     uint8 CommandErrorCounter;
     uint8 spare[2];
 } LOG_HkTlm_Payload_t;
+
+#pragma pack(pop)
 
 #endif
