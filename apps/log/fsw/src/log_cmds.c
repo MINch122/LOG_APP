@@ -41,8 +41,7 @@
 /*         telemetry, packetize it and send it to the housekeeping task via   */
 /*         the software bus                                                   */
 /* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
-CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg)
-{
+CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg) {
     int i;
 
     /*
@@ -74,8 +73,7 @@ CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg)
 /* LOG NOOP commands                                                       */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_NoopCmd(const LOG_NoopCmd_t *Msg)
-{
+CFE_Status_t LOG_NoopCmd(const LOG_NoopCmd_t *Msg) {
     LOG_Data.CmdCounter++;
 
     CFE_EVS_SendEvent(LOG_NOOP_INF_EID, CFE_EVS_EventType_INFORMATION, "LOG: NOOP command %s",
@@ -91,8 +89,7 @@ CFE_Status_t LOG_NoopCmd(const LOG_NoopCmd_t *Msg)
 /*         part of the task telemetry.                                        */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
-CFE_Status_t LOG_ResetCountersCmd(const LOG_ResetCountersCmd_t *Msg)
-{
+CFE_Status_t LOG_ResetCountersCmd(const LOG_ResetCountersCmd_t *Msg) {
     LOG_Data.CmdCounter = 0;
     LOG_Data.ErrCounter = 0;
 
@@ -107,8 +104,7 @@ CFE_Status_t LOG_ResetCountersCmd(const LOG_ResetCountersCmd_t *Msg)
 /*         This function Process Ground Station Command                       */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
-CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg)
-{
+CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg) {
     CFE_Status_t               Status;
     void *                     TblAddr;
     LOG_ExampleTable_t *TblPtr;
@@ -147,8 +143,7 @@ CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg)
 /* A simple example command that displays a passed-in value                   */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg)
-{
+CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg) {
     LOG_Data.CmdCounter++;
 
     CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION,
@@ -167,8 +162,7 @@ CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg)
 /*     Logging enable command                                                 */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_EnabledCmd(const LOG_EnableCmd_t *Msg)
-{
+CFE_Status_t LOG_EnabledCmd(const LOG_EnableCmd_t *Msg) {
     LOG_Data.CmdCounter++;
     LOG_Data.LogEnabled = 1;
 
@@ -183,8 +177,7 @@ CFE_Status_t LOG_EnabledCmd(const LOG_EnableCmd_t *Msg)
 /*     Logging disable command                                                 */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_DisabledCmd(const LOG_DisableCmd_t *Msg)
-{
+CFE_Status_t LOG_DisabledCmd(const LOG_DisableCmd_t *Msg) {
     LOG_Data.CmdCounter++;
     LOG_Data.LogEnabled = 0;
 
@@ -199,8 +192,7 @@ CFE_Status_t LOG_DisabledCmd(const LOG_DisableCmd_t *Msg)
 /*     Gets the header of current log file                                    */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
-{
+CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg) {
     LOG_Data.CmdCounter++;
 
     // 열려 있는 파일 있는지 확인
@@ -241,8 +233,7 @@ CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg)
 /*     Gets the LOG stats: total, info, err, crit count                       */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg)
-{
+CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg) {
     LOG_Data.CmdCounter++;
 
     int fd;
@@ -314,4 +305,97 @@ CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg)
                 (unsigned int)TotalErr, (unsigned int)TotalCrit);
 
     return CFE_SUCCESS;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* GET LOG                                                                    */
+/*     Gets the LOG                                                           */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* QUERY_TIME:                                                                */
+/*     Gets the LOG according to time (start - end)                           */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTime_t *Msg) {
+
+    int32 file_handle;
+    int32 os_status;
+
+    uint32 req_start = Msg->Payload.start_time;
+    uint32 req_end   = Msg->Payload.end_time;
+    uint8 req_mask   = Msg->Payload.query_level;
+
+    // tlm pkt 초기화
+    LOG_QueryTlm_t QueryPkt;
+    memset(&QueryPkt, 0, sizeof(LOG_QueryTlm_t));
+    CFE_MSG_Init(CFE_MSG_PTR(QueryPkt.TelemetryHeader), CFE_SB_ValueToMsgId(LOG_REP_TLM_MID), sizeof(LOG_QueryTlm_t));
+
+    uint16 current_offset = 0; // payload 내에서 현재 쓰기 위치
+    uint16 log_count = 0;  // 담은 로그 개수
+    char filename[64];
+
+    // 인덱스 0번 파일부터 현재 작성 중인 파일까지
+    for (uint32 file_idx = 0; file_idx <= LOG_Data.CurrentIndex; file_idx++) {
+        snprintf(filename, sizeof(filename), "./cf/log%03d.bin", (int)file_idx);
+
+        // POSIX
+        int fd = open(filename, O_RDONLY);
+        if (fd < 0) {
+            continue; // 파일이 없거나 열 수 없으면 패스
+        }
+
+        // 헤더 읽기
+        LOG_FileHeader_t header;
+        if (read(fd, &header, sizeof(LOG_FileHeader_t)) != sizeof(LOG_FileHeader_t)) {
+            close(fd);
+            continue;
+        }
+
+        // ------------ 시간 범위 확인 ------------------
+        // CloseTime이 req_start보다 과거면 바ㅏ로 패스, 단 CloseTime = 0(즉 현재 파일)은 예외처리
+        if (header.CloseTime > 0 && header.CloseTime < req_start) {
+            close(fd);
+            continue;
+        }
+        // CreateTime이 req_end보다 미래면 바ㅏ로 탐색 종료
+        if(header.CreateTime > req_end) {
+            close(fd);
+            break;
+        }
+
+        // ----------- 00 무시 ------------
+        // ftruncate로 파일 크기 고정 -> 끝까지 읽으면 안됨: 헤더 읽고 실제 쓰인 로그 개수 확인
+        uint32 valid_cnt = header.InfoCount + header.ErrCount + header.CritCount;
+
+        for (uint32 i = 0; i < valid_cnt; i++) {
+            CFE_EVS_LongEventTlm_t raw_msg;
+            if (read(fd, &raw_msg, sizeof(CFE_EVS_LongEventTlm_t)) != sizeof(CFE_EVS_LongEventTlm_t)) {
+                beark;
+            }
+            // 개별 메시지 시간 검사
+            CFE_TIME_SysTime_t log_sys_time;
+            CFE_MSG_GetMsgTime(CFE_MSG_PTR(raw_msg.TelemetryHeader), &log_sys_time);
+            if (log_sys_time.Seconds < req_start || log_sys_time.Seconds > req_end) {
+                continue;
+            }
+        }
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

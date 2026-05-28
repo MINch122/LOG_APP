@@ -38,6 +38,8 @@
 
 /*************************************************************************/
 
+#pragma pack(push, 1)
+
 /*
 ** The following commands all share the "NoArgs" format
 **
@@ -45,23 +47,19 @@
 ** allows them to change independently in the future without changing the prototype
 ** of the handler function
 */
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } LOG_NoopCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } LOG_ResetCountersCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } LOG_ProcessCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t           CommandHeader; /**< \brief Command header */
     LOG_DisplayParam_Payload_t Payload;
 } LOG_DisplayParamCmd_t;
@@ -71,13 +69,11 @@ typedef struct
 ** Type definition (Log housekeeping)
 */
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } LOG_SendHkCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_TelemetryHeader_t  TelemetryHeader; /**< \brief Telemetry header */
     LOG_HkTlm_Payload_t Payload;         /**< \brief Telemetry payload */
 } LOG_HkTlm_t;
@@ -91,8 +87,7 @@ typedef struct
 /*
 ** 저장되는 로그 파일 헤더
 */
-typedef struct
-{
+typedef struct {
     uint32                      CreateTime;   // 파일 생성 시각
     uint32                       CloseTime;   // 파일 꽉 찬 시각
     uint32                       FileIndex;   // 파일 인덱스 (0, 1, 2, ...)
@@ -102,37 +97,41 @@ typedef struct
     uint32                        FileSize;   // 파일 총 사이즈 (byte)
 } LOG_FileHeader_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
 } LOG_EnableCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
 } LOG_DisableCmd_t;
 
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
 } LOG_GetCurrentHeaderCmd_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
 } LOG_GetLogCountCmd_t;
 
+typedef struct {
+    CFE_MSG_CommandHeader_t CommandHeader;
+    LOG_QueryTime_Payload_t Payload;
+} LOG_QueryTime_t;
+
+typedef struct {
+    CFE_MSG_CommandHeader_t CommandHeader;
+    LOG_QueryNumber_Payload_t Payload;
+} LOG_QueryNumber;
+
 
 /* Telemetry struct */
-typedef struct
-{
+typedef struct {
     CFE_MSG_TelemetryHeader_t TelemetryHeader;
     LOG_FileHeader_t HeaderData;
 } LOG_HeaderTlm_t;
 
-typedef struct
-{
+typedef struct {
     CFE_MSG_TelemetryHeader_t TelemetryHeader;
     uint32 ScannedFiles;
     uint32 TotalEntries;
@@ -140,6 +139,15 @@ typedef struct
     uint32 TotalErr;
     uint32 TotalCrit;
 } LOG_CountTlm_t;
+
+typedef struct {
+    CFE_MSG_TelemetryHeader_t TelemetryHeader;
+
+    uint16 TotalLogCount;       // 총 로그 개수
+    uint16 TotalDataLength;    // 총 데이터 길이
+
+    uint8 Payload[LOG_MAX_DOWNLINK_PAYLOAD_SIZE];
+} LOG_QueryTlm_t;
 
 
 /************************************************************************
@@ -201,5 +209,6 @@ typedef struct
 */
 extern LOG_Data_t LOG_Data;
 
+#pragma pack(pop)
 
 #endif /* LOG_MSGSTRUCT_H */
