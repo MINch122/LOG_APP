@@ -44,6 +44,7 @@ enum LOG_FunctionCode_
     LOG_FunctionCode_DISABLED             = 5,
     LOG_FunctionCode_GET_CURRENT_HEADER   = 6,
     LOG_FunctionCode_GET_LOG_COUNT        = 7,
+    LOG_FunctionCode_QUERY_TIME           = 8,
 };
 
 #endif

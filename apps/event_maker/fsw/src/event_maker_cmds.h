@@ -33,5 +33,6 @@
 CFE_Status_t EVENT_MAKER_SendHkCmd(const EVENT_MAKER_SendHkCmd_t *Msg);
 CFE_Status_t EVENT_MAKER_ResetCountersCmd(const EVENT_MAKER_ResetCountersCmd_t *Msg);
 CFE_Status_t EVENT_MAKER_NoopCmd(const EVENT_MAKER_NoopCmd_t *Msg);
+CFE_Status_t EVENT_MAKER_DisabledCmd(const EVENT_MAKER_DisabledCmd_t *Msg);
 
 #endif /* EVENT_MAKER_CMDS_H */

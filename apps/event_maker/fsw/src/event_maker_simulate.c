@@ -144,6 +144,11 @@ void EVENT_MAKER_SimulateEvents(void)
             return;
         }
 
+        if (EVENT_MAKER_Data.event_enable == 0) {
+            OS_printf("[EVENT_MAKER] Disabled.\n");
+            break;
+        }
+
         /* Process each entry in the table */
         for (int i = 0; i < EVENT_MAKER_PLATFORM_SIMULATED_EVENT_ENTRIES; ++i) {
 

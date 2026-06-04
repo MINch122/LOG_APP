@@ -89,3 +89,14 @@ CFE_Status_t EVENT_MAKER_ResetCountersCmd(const EVENT_MAKER_ResetCountersCmd_t *
 
     return CFE_SUCCESS;
 }
+
+CFE_Status_t EVENT_MAKER_DisabledCmd(const EVENT_MAKER_DisabledCmd_t *Msg)
+{
+    EVENT_MAKER_Data.CmdCounter++;
+
+    EVENT_MAKER_Data.event_enable = 0;
+
+    CFE_EVS_SendEvent(EVENT_MAKER_RESET_INF_EID, CFE_EVS_EventType_INFORMATION, "EVENT_MAKER: DISABLED command");
+
+    return CFE_SUCCESS;
+}

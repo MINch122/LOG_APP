@@ -138,6 +138,13 @@ void LOG_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             }
             break;
 
+        case LOG_QUERY_TIME_CC:
+            if (LOG_VerifyCmdLength(&SBBufPtr->Msg, sizeof(LOG_QueryTimeCmd_t)))
+            {
+                LOG_QueryTimeCmd((const LOG_QueryTimeCmd_t *)SBBufPtr);
+            }
+            break;
+
 
         /* default case already found during FC vs length test */
         default:

@@ -142,6 +142,11 @@ CFE_Status_t LOG_Init(void)
         CFE_MSG_Init(CFE_MSG_PTR(LOG_Data.HdrTlm.TelemetryHeader), CFE_SB_ValueToMsgId(LOG_HDR_TLM_MID),
                      sizeof(LOG_HeaderTlm_t));
 
+        /*
+         ** Initialize Count command Tlm packet
+         */
+        CFE_MSG_Init(CFE_MSG_PTR(LOG_Data.CntTlm.TelemetryHeader),  CFE_SB_ValueToMsgId(LOG_CNT_TLM_MID), 
+                     sizeof(LOG_CountTlm_t));
 
         /*
          ** Create Software Bus message pipe.

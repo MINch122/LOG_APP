@@ -117,7 +117,7 @@ typedef struct {
 typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
     LOG_QueryTime_Payload_t Payload;
-} LOG_QueryTime_t;
+} LOG_QueryTimeCmd_t;
 
 typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;

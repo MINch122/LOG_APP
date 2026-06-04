@@ -38,6 +38,7 @@ enum EVENT_MAKER_FunctionCode_
 {
     EVENT_MAKER_FunctionCode_NOOP           = 0,
     EVENT_MAKER_FunctionCode_RESET_COUNTERS = 1,
+    EVENT_MAKER_FunctionCode_DISABLED       = 2,
 };
 
 #endif

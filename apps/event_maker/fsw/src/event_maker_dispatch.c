@@ -98,6 +98,13 @@ void EVENT_MAKER_ProcessGroundCommand(const CFE_SB_Buffer_t *SBBufPtr)
             }
             break;
 
+        case EVENT_MAKER_DISABLED_CC:
+            if (EVENT_MAKER_VerifyCmdLength(&SBBufPtr->Msg, sizeof(EVENT_MAKER_DisabledCmd_t)))
+            {
+                EVENT_MAKER_DisabledCmd((const EVENT_MAKER_DisabledCmd_t *)SBBufPtr);
+            }
+            break;
+
         /* default case already found during FC vs length test */
         default:
             CFE_EVS_SendEvent(EVENT_MAKER_CC_ERR_EID, CFE_EVS_EventType_ERROR, "Invalid ground command code: CC = %d",

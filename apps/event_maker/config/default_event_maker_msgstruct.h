@@ -55,6 +55,11 @@ typedef struct
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } EVENT_MAKER_ResetCountersCmd_t;
 
+typedef struct
+{
+    CFE_MSG_CommandHeader_t CommandHeader;
+} EVENT_MAKER_DisabledCmd_t;
+
 /*************************************************************************/
 /*
 ** Type definition (Event Maker housekeeping)

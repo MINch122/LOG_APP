@@ -319,10 +319,7 @@ CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg) {
 /*     Gets the LOG according to time (start - end)                           */
 /*                                                                            */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTime_t *Msg) {
-
-    int32 file_handle;
-    int32 os_status;
+CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTimeCmd_t *Msg) {
 
     uint32 req_start = Msg->Payload.start_time;
     uint32 req_end   = Msg->Payload.end_time;
@@ -373,7 +370,7 @@ CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTime_t *Msg) {
         for (uint32 i = 0; i < valid_cnt; i++) {
             CFE_EVS_LongEventTlm_t raw_msg;
             if (read(fd, &raw_msg, sizeof(CFE_EVS_LongEventTlm_t)) != sizeof(CFE_EVS_LongEventTlm_t)) {
-                beark;
+                break;
             }
             // 개별 메시지 시간 검사
             CFE_TIME_SysTime_t log_sys_time;
@@ -381,21 +378,77 @@ CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTime_t *Msg) {
             if (log_sys_time.Seconds < req_start || log_sys_time.Seconds > req_end) {
                 continue;
             }
+
+            // 개별 메시지 level 검사(mask)
+            uint8 level_mask = 0;
+            if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_INFORMATION) {
+                level_mask = LOG_MASK_INFO; // (1 << 0)
+            } else if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_ERROR) {
+                level_mask = LOG_MASK_ERR;  // (1 << 1)
+            } else if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_CRITICAL) {
+                level_mask = LOG_MASK_CRIT; // (1 << 2)
+            }
+
+            if ((level_mask & req_mask) == 0) {
+                continue;
+            }
+
+
+            // Packing
+            uint16 actual_length = (uint16)strlen(raw_msg.Payload.Message);
+
+            // 남은 공간 확인
+            if (current_offset + sizeof(uint16) + actual_length > LOG_MAX_DOWNLINK_PAYLOAD_SIZE) {
+            close(fd);
+            goto SEND_PACKET;
+            }
+
+            // 데이터 복붙
+            memcpy(&QueryPkt.Payload[current_offset], &actual_length, sizeof(uint16));
+            current_offset += sizeof(uint16);
+            memcpy(&QueryPkt.Payload[current_offset], raw_msg.Payload.Message, actual_length);
+            current_offset += actual_length;
+
+            log_count ++;
         }
 
-
+        close(fd);  // 현재 파일 다 읽음
     }
 
+SEND_PACKET:
+    // 메타데이터 업데이트
+    QueryPkt.TotalLogCount = log_count;
+    QueryPkt.TotalDataLength = current_offset;
 
+    if (log_count > 0) {
+        uint16 actual_packet_size = sizeof(CFE_MSG_TelemetryHeader_t) 
+                                  + sizeof(uint16) + sizeof(uint16) 
+                                  + current_offset;
+                                  
+        CFE_MSG_SetSize(CFE_MSG_PTR(QueryPkt.TelemetryHeader), actual_packet_size);
+        CFE_SB_TransmitMsg(CFE_MSG_PTR(QueryPkt.TelemetryHeader), true);
+        
+        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, 
+                          "Log Query: Downlinked %d logs across files", log_count);
 
+        // debug
+        OS_printf("[LOG-APP] sended packet (Size: %d bytes):\n", actual_packet_size);
 
+        uint8 *pkt_ptr = (uint8 *)&QueryPkt;
 
+        for (uint16 i = 0; i < actual_packet_size; i++) {
+            OS_printf("%02X ", pkt_ptr[i]);
+            
+            if ((i + 1) % 16 == 0) {
+                OS_printf("\n");
+            }
+        }
+        OS_printf("\n\n");
+    }
+    else {
+        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, 
+                          "Log Query: No logs found matching criteria");
+    }
 
-
-
-
-
-
-
-
+    return CFE_SUCCESS;
 }

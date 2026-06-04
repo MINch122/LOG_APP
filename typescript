@@ -1,0 +1,31 @@
+Script started on 2026-06-04 21:14:59+09:00 [TERM="xterm-256color" TTY="/dev/pts/8" COLUMNS="183" LINES="42"]
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ script test.tex[K[Kxt
+[?2004lScript started, output log file is 'test.txt'.
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ git pushcommit -m "0528"[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K=[K[K[K[K^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ exit
+[?2004lexit
+Script done.
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ls
+[?2004lCITATION.cff        LICENSE    SECURITY.md  cFS_Apps_Corporate_CLA.pdf       cFS_Framework_Individual_CLA.pdf  [0m[01;34mlibs[0m  [01;34msample_defs[0m  [01;34mtools[0m
+CODE_OF_CONDUCT.md  Makefile   [01;34mapps[0m         cFS_Apps_Individual_CLA.pdf      [01;34mcactus[0m                            [01;34mosal[0m  [01;32msudo_gdb.sh[0m  typescript
+CONTRIBUTING.md     README.md  [01;34mbuild[0m        cFS_Framework_Corporate_CLA.pdf  [01;34mcfe[0m                               [01;34mpsp[0m   test.txt
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ vi test.txt [K[K[K[K[K[K[K[K[K[K[K[Kcat test.txt 
+[?2004lScript started on 2026-06-04 21:15:08+09:00 [TERM="xterm-256color" TTY="/dev/pts/9" COLUMNS="183" LINES="42"]
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ git pushcommit -m "0528"[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K=[K[K[K[K^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min122@DESKTOP-LJ4D3C8: ~/LOG_APP[01;32mmin122@DESKTOP-LJ4D3C8[00m:[01;34m~/LOG_APP[00m$ ^C[?2004l[?2004h[?2004l
+[?2004h]0;min12

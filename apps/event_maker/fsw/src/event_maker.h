@@ -65,6 +65,9 @@ typedef struct
     */
     uint32 RunStatus;
 
+    // on-off 기능
+    uint8 event_enable;
+
     /*
     ** Operational data (not reported in housekeeping)...
     */

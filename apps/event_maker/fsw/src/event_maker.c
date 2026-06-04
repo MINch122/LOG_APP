@@ -125,6 +125,8 @@ CFE_Status_t EVENT_MAKER_Init(void)
 
     EVENT_MAKER_Data.RunStatus = CFE_ES_RunStatus_APP_RUN;
 
+    EVENT_MAKER_Data.event_enable = 1;
+
     /*
     ** Register the events
     */

@@ -57,6 +57,32 @@
       "fc": 7,
       "description": "Gets the LOG stats: total, info, err, crit count",
       "params": []
+    },
+    {
+      "name": "QUERY_TIME",
+      "mid": "0x1882",
+      "fc": 8,
+      "description": "Gets the LOG stats: total, info, err, crit count",
+      "params": [
+        {
+          "name": "Start time",
+          "type": "uint32",
+          "default": "0",
+          "description": "Start time to query LOGs"
+        },
+        {
+          "name": "End time",
+          "type": "uint32",
+          "default": "100",
+          "description": "End time to query LOGs"
+        },
+        {
+          "name": "Query level",
+          "type": "uint8",
+          "default": "0b111",
+          "description": "Log level mask to query, 0bNNN, 1의자리 INF, 2의자리 ERR, 4의자리 CRIT"
+        }
+      ]
     }
   ]
 }

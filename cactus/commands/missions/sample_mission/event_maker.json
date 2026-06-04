@@ -1,0 +1,27 @@
+{
+  "app": "EVENT_MAKER",
+  "description": "EVENT_MAKER APP command for disable",
+  "commands": [
+    {
+      "name": "NOOP",
+      "mid": "0x1893",
+      "fc": 0,
+      "description": "Verify the command interface is alive and increment the command counter.",
+      "params": []
+    },
+    {
+      "name": "RESET_COUNTERS",
+      "mid": "0x1893",
+      "fc": 1,
+      "description": "Reset the application's housekeeping counters.",
+      "params": []
+    },
+    {
+      "name": "DISABLE",
+      "mid": "0x1893",
+      "fc": 2,
+      "description": "DISABLE Event maker",
+      "params": []
+    }
+  ]
+}
