@@ -29,16 +29,12 @@
 */
 #include "cfe_error.h"
 #include "log_msg.h"
-#include "cfe_evs_msgstruct.h"
 
 CFE_Status_t LOG_SendHkCmd(const LOG_SendHkCmd_t *Msg);
 CFE_Status_t LOG_ResetCountersCmd(const LOG_ResetCountersCmd_t *Msg);
-CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg);
 CFE_Status_t LOG_NoopCmd(const LOG_NoopCmd_t *Msg);
-CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg);
 CFE_Status_t LOG_EnabledCmd(const LOG_EnableCmd_t *Msg);
 CFE_Status_t LOG_DisabledCmd(const LOG_DisableCmd_t *Msg);
-CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg);
 CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg);
 CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg);
 CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTimeCmd_t *Msg);

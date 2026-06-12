@@ -28,9 +28,11 @@
 ** Required header files.
 */
 #include "log.h"
+#include "cfe_evs_msgstruct.h"
 
 CFE_Status_t LOG_TblValidationFunc(void *TblData);
 void         LOG_GetCrc(const char *TableName);
+CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg)
 CFE_Status_t LOG_logging(const LOG_QueryTlm_t *QueryPkt);
 
 #endif /* LOG_UTILS_H */

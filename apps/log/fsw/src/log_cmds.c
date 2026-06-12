@@ -98,62 +98,6 @@ CFE_Status_t LOG_ResetCountersCmd(const LOG_ResetCountersCmd_t *Msg) {
     return CFE_SUCCESS;
 }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-/*                                                                            */
-/*  Purpose:                                                                  */
-/*         This function Process Ground Station Command                       */
-/*                                                                            */
-/* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
-CFE_Status_t LOG_ProcessCmd(const LOG_ProcessCmd_t *Msg) {
-    CFE_Status_t               Status;
-    void *                     TblAddr;
-    LOG_ExampleTable_t *TblPtr;
-    const char *               TableName = "LOG.ExampleTable";
-
-    /* Log Use of Example Table */
-    LOG_Data.CmdCounter++;
-    
-    Status = CFE_TBL_GetAddress(&TblAddr, LOG_Data.TblHandles[0]);
-    if (Status < CFE_SUCCESS)
-    {
-        CFE_ES_WriteToSysLog("Log: Fail to get table address: 0x%08lx", (unsigned long)Status);
-    }
-    else
-    {
-        TblPtr = TblAddr;
-        CFE_ES_WriteToSysLog("Log: Example Table Value 1: %d  Value 2: %d", TblPtr->Int1, TblPtr->Int2);
-
-        LOG_GetCrc(TableName);
-
-        Status = CFE_TBL_ReleaseAddress(LOG_Data.TblHandles[0]);
-        if (Status != CFE_SUCCESS)
-        {
-            CFE_ES_WriteToSysLog("Log: Fail to release table address: 0x%08lx", (unsigned long)Status);
-        }
-        else
-        {
-        }
-    }
-
-    return Status;
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-/*                                                                            */
-/* A simple example command that displays a passed-in value                   */
-/*                                                                            */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
-CFE_Status_t LOG_DisplayParamCmd(const LOG_DisplayParamCmd_t *Msg) {
-    LOG_Data.CmdCounter++;
-
-    CFE_EVS_SendEvent(LOG_VALUE_INF_EID, CFE_EVS_EventType_INFORMATION,
-                      "LOG: ValU32=%lu, ValI16=%d, ValStr=%s", (unsigned long)Msg->Payload.ValU32,
-                      (int)Msg->Payload.ValI16, Msg->Payload.ValStr);
-
-    return CFE_SUCCESS;
-}
-
-
 /* 민창희가 만들었어요(with AI) */
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/

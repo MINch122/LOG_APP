@@ -55,15 +55,6 @@ typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
 } LOG_ResetCountersCmd_t;
 
-typedef struct {
-    CFE_MSG_CommandHeader_t CommandHeader; /**< \brief Command header */
-} LOG_ProcessCmd_t;
-
-typedef struct {
-    CFE_MSG_CommandHeader_t           CommandHeader; /**< \brief Command header */
-    LOG_DisplayParam_Payload_t Payload;
-} LOG_DisplayParamCmd_t;
-
 /*************************************************************************/
 /*
 ** Type definition (Log housekeeping)

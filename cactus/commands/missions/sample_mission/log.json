@@ -17,51 +17,37 @@
       "params": []
     },
     {
-      "name": "PROCESS",
-      "mid": "0x1882",
-      "fc": 2,
-      "description": "Process Ground Station Command: Table adress & Table value",
-      "params": []
-    },
-    {
-      "name": "DISPLAY_PARAM",
-      "mid": "0x1882",
-      "fc": 3,
-      "description": "A simple example command that displays a passed-in value.",
-      "params": []
-    },
-    {
       "name": "ENABLED",
       "mid": "0x1882",
-      "fc": 4,
+      "fc": 2,
       "description": "Enable Logging",
       "params": []
     },
     {
       "name": "DISABLED",
       "mid": "0x1882",
-      "fc": 5,
+      "fc": 3,
       "description": "Disable Logging",
       "params": []
     },
     {
       "name": "GET_CURRENT_HEADER",
       "mid": "0x1882",
-      "fc": 6,
+      "fc": 4,
       "description": "Gets the header of current log file.",
       "params": []
     },
     {
       "name": "GET_LOG_COUNT",
       "mid": "0x1882",
-      "fc": 7,
+      "fc": 5,
       "description": "Gets the LOG stats: total, info, err, crit count",
       "params": []
     },
     {
       "name": "QUERY_TIME",
       "mid": "0x1882",
-      "fc": 8,
+      "fc": 6,
       "description": "Gets the LOG according to time (start - end)",
       "params": [
         {
@@ -87,7 +73,7 @@
     {
       "name": "QUERY_NUMBER",
       "mid": "0x1882",
-      "fc": 9,
+      "fc": 7,
       "description": "Gets the N LOGs starting from the first log at or after start_time",
       "params": [
         {

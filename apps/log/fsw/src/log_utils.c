@@ -75,6 +75,120 @@ void LOG_GetCrc(const char *TableName)
     }
 }
 
+
+/* 민창희가 만들었어요(with AI) */
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/*  Purpose:                                                                  */
+/*         SB에서부터 오는 event message를 저장하기 위한 함수                      */
+/*         LINUX system call (POSIX) used: open, close, mmap                  */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * *  * * * * * * *  * *  * * * * */
+CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg)
+{
+    char Filename[64];
+    uint32 TotalFileSize;
+    uint32 WriteOffset;
+
+    OS_printf("[LOG APP] I receive an Event Mesagge. OK!\n");
+
+    // LOG Enabled 확인
+    if (LOG_Data.LogEnabled != 1)
+    {
+        OS_printf("[LOG APP] BUT LOG Disabled\n");
+        return CFE_SUCCESS;
+    }
+
+    // Debug 메시지 무시
+    if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_DEBUG)
+    {
+        return CFE_SUCCESS;
+    }
+
+    // 전체 파일 크기 = 헤더 + (최대 허용 메시지 개수 * 메시지 하나의 구조체 크기)
+    TotalFileSize = sizeof(LOG_FileHeader_t) + (LOG_MAX_ENTRIES_PER_FILE * sizeof(CFE_EVS_LongEventTlm_t));
+
+    // 파일 생성, mmap 초기화
+    if (LOG_Data.MapPtr == NULL)
+    {
+        snprintf(Filename, sizeof(Filename), "./cf/log%03d.bin", (int)LOG_Data.CurrentIndex);
+
+        // 표준 POSIX 사용 (mmap과 연동)
+        LOG_Data.Fd = open(Filename, O_RDWR | O_CREAT | O_TRUNC, 0666);
+        if (LOG_Data.Fd < 0)
+        {
+            OS_printf("[LOG APP] ERROR: Failed to open %s\n", Filename);
+            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+        }
+
+        // ftruncate
+        if (ftruncate(LOG_Data.Fd, TotalFileSize) == -1)
+        {
+            close(LOG_Data.Fd);
+            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+        }
+
+        // memory mapping
+        LOG_Data.MapPtr = (uint8 *)mmap(NULL, TotalFileSize, PROT_READ | PROT_WRITE, MAP_SHARED, LOG_Data.Fd, 0);
+        if (LOG_Data.MapPtr == MAP_FAILED)
+        {
+            LOG_Data.MapPtr = NULL;
+            close(LOG_Data.Fd);
+            return CFE_STATUS_EXTERNAL_RESOURCE_FAIL;
+        }
+
+        // 헤더 구조체를 메모리 맨 앞에 복사
+        memset(&LOG_Data.CurrentHeader, 0, sizeof(LOG_FileHeader_t));
+        LOG_Data.CurrentHeader.CreateTime = CFE_TIME_GetTime().Seconds;
+        LOG_Data.CurrentHeader.FileIndex = LOG_Data.CurrentIndex;
+        LOG_Data.CurrentHeader.FileSize = sizeof(LOG_FileHeader_t);
+        LOG_Data.EntryCount = 0;
+
+        memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
+    }
+
+    // 메모리에 데이터 복사
+    WriteOffset = sizeof(LOG_FileHeader_t) + (LOG_Data.EntryCount * sizeof(CFE_EVS_LongEventTlm_t));
+
+    memcpy(LOG_Data.MapPtr + WriteOffset, Msg, sizeof(CFE_EVS_LongEventTlm_t));
+
+    // 헤더 상태 업데이트
+    LOG_Data.EntryCount++;
+    LOG_Data.CurrentHeader.FileSize += sizeof(CFE_EVS_LongEventTlm_t);
+
+    if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_CRITICAL)
+    {
+        LOG_Data.CurrentHeader.CritCount++;
+    }
+    else if (Msg->Payload.PacketID.EventType == CFE_EVS_EventType_ERROR)
+    {
+        LOG_Data.CurrentHeader.ErrCount++;
+    }
+    else
+    {
+        LOG_Data.CurrentHeader.InfoCount++;
+    }
+    memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
+
+    // 다 채웠을 때 - 파일 닫기, 초기화
+    if (LOG_Data.EntryCount >= LOG_MAX_ENTRIES_PER_FILE)
+    {
+        LOG_Data.CurrentHeader.CloseTime = CFE_TIME_GetTime().Seconds;
+        memcpy(LOG_Data.MapPtr, &LOG_Data.CurrentHeader, sizeof(LOG_FileHeader_t));
+
+        msync(LOG_Data.MapPtr, TotalFileSize, MS_SYNC);
+
+        munmap(LOG_Data.MapPtr, TotalFileSize);
+        close(LOG_Data.Fd);
+
+        LOG_Data.MapPtr = NULL;
+        LOG_Data.CurrentIndex++;
+    }
+
+    return CFE_SUCCESS;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                             */
 /* LOG logging helper                                                          */
