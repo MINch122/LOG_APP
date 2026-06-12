@@ -122,7 +122,7 @@ typedef struct {
 typedef struct {
     CFE_MSG_CommandHeader_t CommandHeader;
     LOG_QueryNumber_Payload_t Payload;
-} LOG_QueryNumber;
+} LOG_QueryNumber_t;
 
 
 /* Telemetry struct */
@@ -144,7 +144,8 @@ typedef struct {
     CFE_MSG_TelemetryHeader_t TelemetryHeader;
 
     uint16 TotalLogCount;       // 총 로그 개수
-    uint16 TotalDataLength;    // 총 데이터 길이
+    uint16 TotalDataLength;     // 총 데이터 길이
+    uint8 Index;                // 패킷 인덱스 (0=단일, 1 ~ 0xFF =분할)
 
     uint8 Payload[LOG_MAX_DOWNLINK_PAYLOAD_SIZE];
 } LOG_QueryTlm_t;

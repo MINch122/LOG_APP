@@ -38,6 +38,6 @@
 #include "log_mission_cfg.h"
 #include "log_internal_cfg.h"
 
-#define LOG_MAX_DOWNLINK_PAYLOAD_SIZE     1024
+#define LOG_MAX_DOWNLINK_PAYLOAD_SIZE     2048 
 
 #endif

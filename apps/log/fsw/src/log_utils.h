@@ -31,5 +31,6 @@
 
 CFE_Status_t LOG_TblValidationFunc(void *TblData);
 void         LOG_GetCrc(const char *TableName);
+CFE_Status_t LOG_logging(const LOG_QueryTlm_t *QueryPkt);
 
 #endif /* LOG_UTILS_H */

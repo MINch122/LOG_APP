@@ -62,19 +62,45 @@
       "name": "QUERY_TIME",
       "mid": "0x1882",
       "fc": 8,
-      "description": "Gets the LOG stats: total, info, err, crit count",
+      "description": "Gets the LOG according to time (start - end)",
       "params": [
         {
           "name": "Start time",
           "type": "uint32",
-          "default": "0",
+          "default": "1001000",
           "description": "Start time to query LOGs"
         },
         {
           "name": "End time",
           "type": "uint32",
-          "default": "100",
+          "default": "1001100",
           "description": "End time to query LOGs"
+        },
+        {
+          "name": "Query level",
+          "type": "uint8",
+          "default": "0b111",
+          "description": "Log level mask to query, 0bNNN, 1의자리 INF, 2의자리 ERR, 4의자리 CRIT"
+        }
+      ]
+    },
+    {
+      "name": "QUERY_NUMBER",
+      "mid": "0x1882",
+      "fc": 9,
+      "description": "Gets the N LOGs starting from the first log at or after start_time",
+      "params": [
+        {
+          "name": "Start time",
+          "type": "uint32",
+          "default": "1001000",
+          "description": "Start time to query LOGs"
+        },
+        {
+          "name": "Log count",
+          "type": "uint16",
+          "default": "10",
+          "description": "Number of LOGs to retrieve"
         },
         {
           "name": "Query level",

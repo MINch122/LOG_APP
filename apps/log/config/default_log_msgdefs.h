@@ -46,8 +46,8 @@ typedef struct
 
 typedef struct
 {
-    uint16 start_idx;
-    uint16 log_number;  // start_idx부터 로그 몇 개를 가져올 건지
+    uint32 start_time;  // 요청한 로그 시작 시간
+    uint16 log_number;  // start_time의 로그부터 가져올 로그 개수
 
     uint8 query_level;
 } LOG_QueryNumber_Payload_t;

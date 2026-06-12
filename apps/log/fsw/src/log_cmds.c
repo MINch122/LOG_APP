@@ -224,6 +224,8 @@ CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg) {
               (unsigned int)LOG_Data.CurrentHeader.CritCount,
               (unsigned int)LOG_Data.CurrentHeader.FileSize);
 
+    CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, "GET_CURRENT_HEADER command processed successfully");
+
     return CFE_SUCCESS;
 }
 
@@ -303,6 +305,8 @@ CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg) {
     OS_printf("Total Logs   : %u\n", (unsigned int)TotalEntries);
     OS_printf("Info: %u, Err: %u, Crit: %u\n", (unsigned int)TotalInfo,
                 (unsigned int)TotalErr, (unsigned int)TotalCrit);
+
+    CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, "GET_LOG_COUNT command processed successfully");
 
     return CFE_SUCCESS;
 }
@@ -395,18 +399,22 @@ CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTimeCmd_t *Msg) {
 
 
             // Packing
-            uint16 actual_length = (uint16)strlen(raw_msg.Payload.Message);
+            // 앱이름 + EVS msg
+            char combined_msg[256];
+            snprintf(combined_msg, sizeof(combined_msg), "[%s] %s", raw_msg.Payload.PacketID.AppName, raw_msg.Payload.Message);
+
+            uint16 actual_length = (uint16)strlen(combined_msg);
 
             // 남은 공간 확인
             if (current_offset + sizeof(uint16) + actual_length > LOG_MAX_DOWNLINK_PAYLOAD_SIZE) {
-            close(fd);
-            goto SEND_PACKET;
+                close(fd);
+                goto SEND_PACKET;
             }
 
             // 데이터 복붙
             memcpy(&QueryPkt.Payload[current_offset], &actual_length, sizeof(uint16));
             current_offset += sizeof(uint16);
-            memcpy(&QueryPkt.Payload[current_offset], raw_msg.Payload.Message, actual_length);
+            memcpy(&QueryPkt.Payload[current_offset], combined_msg, actual_length);
             current_offset += actual_length;
 
             log_count ++;
@@ -420,35 +428,161 @@ SEND_PACKET:
     QueryPkt.TotalLogCount = log_count;
     QueryPkt.TotalDataLength = current_offset;
 
+    CFE_Status_t Status;
+
     if (log_count > 0) {
-        uint16 actual_packet_size = sizeof(CFE_MSG_TelemetryHeader_t) 
-                                  + sizeof(uint16) + sizeof(uint16) 
-                                  + current_offset;
-                                  
-        CFE_MSG_SetSize(CFE_MSG_PTR(QueryPkt.TelemetryHeader), actual_packet_size);
-        CFE_SB_TransmitMsg(CFE_MSG_PTR(QueryPkt.TelemetryHeader), true);
-        
-        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, 
-                          "Log Query: Downlinked %d logs across files", log_count);
-
-        // debug
-        OS_printf("[LOG-APP] sended packet (Size: %d bytes):\n", actual_packet_size);
-
-        uint8 *pkt_ptr = (uint8 *)&QueryPkt;
-
-        for (uint16 i = 0; i < actual_packet_size; i++) {
-            OS_printf("%02X ", pkt_ptr[i]);
-            
-            if ((i + 1) % 16 == 0) {
-                OS_printf("\n");
-            }
+        Status = LOG_logging(&QueryPkt);
+        if (Status == CFE_SUCCESS) {
+            CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION,
+                              "QUERY_TIME: Downlinked %d logs across files", log_count);
         }
-        OS_printf("\n\n");
+        else {
+            CFE_EVS_SendEvent(LOG_CMD_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "QUERY_TIME: Failed to downlink log query results");
+        }
     }
     else {
-        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION, 
-                          "Log Query: No logs found matching criteria");
+        Status = CFE_SUCCESS;
+        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION,
+                          "QUERY_TIME: No logs found matching criteria");
     }
 
-    return CFE_SUCCESS;
+    return Status;
+}
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+/*                                                                            */
+/* QUERY_NUMBER:                                                              */
+/*     Gets the N LOGs starting from the first log at or after start_time     */
+/*                                                                            */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * **/
+CFE_Status_t LOG_QueryNumberCmd(const LOG_QueryNumber_t *Msg) {
+
+    uint32 req_start = (uint32)Msg->Payload.start_time;
+    uint16 req_count = Msg->Payload.log_number;
+    uint8 req_mask   = Msg->Payload.query_level;
+
+    // tlm pkt 초기화
+    LOG_QueryTlm_t QueryPkt;
+    memset(&QueryPkt, 0, sizeof(LOG_QueryTlm_t));
+    CFE_MSG_Init(CFE_MSG_PTR(QueryPkt.TelemetryHeader), CFE_SB_ValueToMsgId(LOG_REP_TLM_MID), sizeof(LOG_QueryTlm_t));
+
+    uint16 current_offset = 0;
+    uint16 log_count = 0;
+    char filename[64];
+    uint8 started = 0;  // 0 = false, 1 = true: req_start 시각부터 카운트 시작하도록
+
+    // 인덱스 0번 파일부터 현재 작성 중인 파일까지
+    for (uint32 file_idx = 0; file_idx <= LOG_Data.CurrentIndex; file_idx++) {
+        snprintf(filename, sizeof(filename), "./cf/log%03d.bin", (int)file_idx);
+
+        // POSIX
+        int fd = open(filename, O_RDONLY);
+        if (fd < 0) {
+            continue;   // 파일이 없거나 열 수 없으면 패스
+        }
+
+        // 헤더 읽기
+        LOG_FileHeader_t header;
+        if (read(fd, &header, sizeof(LOG_FileHeader_t)) != sizeof(LOG_FileHeader_t)) {
+            close(fd);
+            continue;
+        }
+
+        // 파일 닫힌 시각이 요청 시작 시각보다 과거면 바ㅏㅏ로 패스
+        if (header.CloseTime > 0 && header.CloseTime < req_start) {
+            close(fd);
+            continue; 
+        }
+
+        uint32 valid_cnt = header.InfoCount + header.ErrCount + header.CritCount;
+
+        for (uint32 i = 0; i < valid_cnt; i++) {
+            CFE_EVS_LongEventTlm_t raw_msg;
+            if (read(fd, &raw_msg, sizeof(CFE_EVS_LongEventTlm_t)) != sizeof(CFE_EVS_LongEventTlm_t)) {
+                break;
+            }
+
+            CFE_TIME_SysTime_t log_sys_time;
+            CFE_MSG_GetMsgTime(CFE_MSG_PTR(raw_msg.TelemetryHeader), &log_sys_time);
+
+            // 시작 조건 확인
+            if (started == 0) {
+                if (log_sys_time.Seconds < req_start) {
+                    continue;   // 아직 시작 아님
+                }
+                started = 1; // 지금부터 카운트 시작
+            }
+
+            // 개별 메시지 level 검사(mask)
+            uint8 level_mask = 0;
+            if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_INFORMATION) {
+                level_mask = LOG_MASK_INFO;
+            } else if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_ERROR) {
+                level_mask = LOG_MASK_ERR;
+            } else if (raw_msg.Payload.PacketID.EventType == CFE_EVS_EventType_CRITICAL) {
+                level_mask = LOG_MASK_CRIT;
+            }
+
+            if ((level_mask & req_mask) == 0) {
+                continue;
+            }
+
+            // Packing
+            // 앱이름 + EVS msg
+            char combined_msg[256];
+            snprintf(combined_msg, sizeof(combined_msg), "[%s] %s", raw_msg.Payload.PacketID.AppName, raw_msg.Payload.Message);
+
+            uint16 actual_length = (uint16)strlen(combined_msg);
+
+            // 남은 공간 확인
+            if (current_offset + sizeof(uint16) + actual_length > LOG_MAX_DOWNLINK_PAYLOAD_SIZE) {
+                close(fd);
+                goto SEND_NUMBER_PACKET;
+            }
+
+            // 데이터 복붙
+            memcpy(&QueryPkt.Payload[current_offset], &actual_length, sizeof(uint16));
+            current_offset += sizeof(uint16);
+            memcpy(&QueryPkt.Payload[current_offset], combined_msg, actual_length);
+            current_offset += actual_length;
+
+            log_count++;
+
+            // 로그 개수 도달했으면 종료
+            if (log_count >= req_count) {
+                close(fd);
+                goto SEND_NUMBER_PACKET;
+            }
+        }
+
+        close(fd);
+    }
+
+SEND_NUMBER_PACKET:
+    // 메타데이터 업데이트
+    QueryPkt.TotalLogCount = log_count;
+    QueryPkt.TotalDataLength = current_offset;
+
+    CFE_Status_t Status;
+
+    if (log_count > 0) {
+        Status = LOG_logging(&QueryPkt);
+        if (Status == CFE_SUCCESS) {
+            CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION,
+                              "QUERY_NUMBER: Downlinked %d logs across files", log_count);
+        }
+        else {
+            CFE_EVS_SendEvent(LOG_CMD_ERR_EID, CFE_EVS_EventType_ERROR,
+                              "QUERY_NUMBER: Failed to downlink log query results");
+        }
+    }
+    else {
+        Status = CFE_SUCCESS;
+        CFE_EVS_SendEvent(LOG_CMD_INF_EID, CFE_EVS_EventType_INFORMATION,
+                          "QUERY_NUMBER: No logs found matching criteria");
+    }
+
+    return Status;
 }

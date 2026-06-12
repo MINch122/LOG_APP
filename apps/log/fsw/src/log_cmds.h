@@ -42,5 +42,6 @@ CFE_Status_t LOG_ProcessEventMsg(const CFE_EVS_LongEventTlm_t *Msg);
 CFE_Status_t LOG_GetCurrentHeaderCmd(const LOG_GetCurrentHeaderCmd_t *Msg);
 CFE_Status_t LOG_GetLogCountCmd(const LOG_GetLogCountCmd_t *Msg);
 CFE_Status_t LOG_QueryTimeCmd(const LOG_QueryTimeCmd_t *Msg);
+CFE_Status_t LOG_QueryNumberCmd(const LOG_QueryNumber_t *Msg);
 
 #endif /* LOG_CMDS_H */
